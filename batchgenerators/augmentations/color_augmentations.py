@@ -15,6 +15,7 @@
 from builtins import range
 import numpy as np
 from batchgenerators.augmentations.utils import general_cc_var_num_channels, illumination_jitter
+from skimage.exposure import equalize_adapthist
 
 
 def augment_contrast(data_sample, contrast_range=(0.75, 1.25), preserve_range=True, per_channel=True):
@@ -137,4 +138,19 @@ def augment_PCA_shift(data, U, s, sigma=0.2):
         data[sample] = illumination_jitter(data[sample], U, s, sigma)
         data[sample] -= data[sample].min()
         data[sample] /= data[sample].max()
+    return data
+
+
+def augment_CLAHE(data, kernel_size=None, clip_limit=0.01, per_channel=False):
+    """
+    :data:
+    :kernel_size:
+    :clip_limit:
+    :per_channel:
+    """
+    if per_channel:
+        for c in range(data.shape[0]):
+            data[c] = equalize_adapthist(data[c], kernel_size=kernel_size, clip_limit=clip_limit)
+    else:
+        data = equalize_adapthist(data, kernel_size=kernel_size, clip_limit=clip_limit)
     return data

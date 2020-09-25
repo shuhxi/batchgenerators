@@ -14,7 +14,7 @@
 
 import numpy as np
 from batchgenerators.augmentations.color_augmentations import augment_contrast, augment_brightness_additive, \
-    augment_brightness_multiplicative, augment_gamma, augment_illumination, augment_PCA_shift
+    augment_brightness_multiplicative, augment_gamma, augment_illumination, augment_PCA_shift, augment_CLAHE
 from batchgenerators.transforms.abstract_transforms import AbstractTransform
 
 
@@ -190,4 +190,22 @@ class ClipValueRange(AbstractTransform):
 
     def __call__(self, **data_dict):
         data_dict[self.data_key] = np.clip(data_dict[self.data_key], self.min, self.max)
+        return data_dict
+
+class CLAHE(AbstractTransform):
+    def __init__(self, kernel_size=None, clip_limit=0.01, data_key="data", per_channel):
+        """
+        Performs Contrast Limited Adaptive Histogram Equalization (CLAHE) on the data
+        :param min:
+        :param max:
+        :param data_key:
+        """
+        self.data_key = data_key
+        self.kernel_size = kernel_size
+        self.clip_limit = clip_limit
+        self.per_channel = per_channel
+
+    def __call__(self, **data_dict):
+        data_dict[self.data_key] = augment_CLAHE(data_dict[self.data_key], kernel_size=self.kernel_size,
+                                                 clip_limit=self.clip_limit, per_channel=self.per_channel)
         return data_dict

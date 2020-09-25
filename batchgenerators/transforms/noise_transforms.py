@@ -14,7 +14,7 @@
 
 
 from batchgenerators.augmentations.noise_augmentations import augment_blank_square_noise, augment_gaussian_blur, \
-    augment_gaussian_noise, augment_rician_noise
+    augment_gaussian_noise, augment_rician_noise, augment_median_filter
 from batchgenerators.transforms.abstract_transforms import AbstractTransform
 import numpy as np
 
@@ -111,4 +111,33 @@ class BlankSquareNoiseTransform(AbstractTransform):
                 data_dict[self.data_key][b] = augment_blank_square_noise(data_dict[self.data_key][b], self.squre_size,
                                                                          self.n_squres, self.noise_val,
                                                                          self.channel_wise_n_val, self.square_pos)
+        return data_dict
+
+
+class MedianFilterTransform(AbstractTransform):
+    def __init__(self, filter_size=10, filter_footprint=None, data_key="data", label_key="seg",
+                 p_per_channel=1, p_per_sample=1):
+        """Adds Median Filter with either given filter window size.
+
+        :param filter_size: window size of median filter
+        :param filter_footprint: footprint specifying the shape of the filter window
+        :param data_key: data key
+        :param label_key: label key
+        :param p_per_channel: probability of applying median blur for each channel. Default = 1 (all channels are
+        blurred with prob 1)
+        :param p_per_sample: probability of applying median blur for each sample. Default = 1 (all channels are
+        blurred with prob 1)
+        """
+        self.p_per_sample = p_per_sample
+        self.p_per_channel = p_per_channel
+        self.data_key = data_key
+        self.label_key = label_key
+        self.filter_size = filter_size
+        self.filter_footprint = filter_footprint
+
+    def __call__(self, **data_dict):
+        for b in range(len(data_dict[self.data_key])):
+            if np.random.uniform() < self.p_per_sample:
+                data_dict[self.data_key][b] = augment_median_filter(data_dict[self.data_key][b], self.filter_size,
+                                                                    self.filter_footprint, self.p_per_channel)
         return data_dict

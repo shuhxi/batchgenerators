@@ -16,7 +16,7 @@ import random
 import numpy as np
 from batchgenerators.augmentations.utils import get_range_val, mask_random_squares
 from builtins import range
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter, median_filter
 
 
 def augment_rician_noise(data_sample, noise_variance=(0, 0.1)):
@@ -56,6 +56,21 @@ def augment_blank_square_noise(data_sample, square_size, n_squares, noise_val=(0
     data_sample = mask_random_squares(data_sample, square_size=rnd_square_size, n_squares=rnd_n_squares,
                                            n_val=noise_val, channel_wise_n_val=channel_wise_n_val,
                                            square_pos=square_pos)
+    return data_sample
+
+
+def augment_median_filter(data_sample, size=None, footprint=None, p_per_channel=1):
+    """
+    :param data_sample:
+    :size:
+    :footprint:
+    :param p_per_channel: probability of of applying the filter (per channel)
+    """
+    assert (size is not None) or (footprint is not None)
+
+    for c in range(data_sample.shape[0]):
+        if np.random.uniform() <= p_per_channel:
+            data_sample[c] = median_filter(data_sample[c], size=size, footprint=footprint)
     return data_sample
 
 
